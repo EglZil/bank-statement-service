@@ -12,4 +12,6 @@ public interface BankStatementRepository extends JpaRepository<BankStatement, Lo
     List<BankStatement> findByAccountNumberInAndOperationDateBetween(List<String> accountNumbers, LocalDateTime from, LocalDateTime to);
 
     List<BankStatement> findByAccountNumberIn(List<String> accountNumbers);
+
+    List<BankStatement> findByAccountNumberAndOperationDateBetween(String accountNumber, LocalDateTime from, LocalDateTime to);
 }

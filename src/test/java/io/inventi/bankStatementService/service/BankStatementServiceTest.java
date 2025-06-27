@@ -14,7 +14,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -122,5 +124,29 @@ class BankStatementServiceTest {
         List<BankStatementDto> result = bankStatementService.findBankStatements(accounts, null, null);
 
         assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void calculateBalance_withinDateRange_returnsCorrectSum() {
+        String accountNumber = "123";
+        List<BankStatement> data = List.of(
+                new BankStatement(null, accountNumber, LocalDateTime.now(), "Alice", BigDecimal.valueOf(100), "USD", "Payment"),
+                new BankStatement(null, accountNumber, LocalDateTime.now(), "Alice", BigDecimal.valueOf(-40), "USD", "Withdrawal")
+        );
+
+        when(bankStatementRepository.findByAccountNumberAndOperationDateBetween(eq(accountNumber), any(), any())).thenReturn(data);
+        BigDecimal balance = bankStatementService.calculateBalance(accountNumber, null, null);
+
+        assertEquals(BigDecimal.valueOf(60), balance);
+    }
+
+    @Test
+    void calculateBalance_noTransactions_returnsZero() {
+        when(bankStatementRepository.findByAccountNumberAndOperationDateBetween(eq("999"), any(), any()))
+                .thenReturn(List.of());
+
+        BigDecimal result = bankStatementService.calculateBalance("999", null, null);
+
+        assertEquals(BigDecimal.ZERO, result);
     }
 }

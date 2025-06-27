@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -47,5 +48,15 @@ public class BankStatementController {
 
         List<BankStatementDto> transactions = bankStatementService.findBankStatements(accountNumbers, dateFrom, dateTo);
         CsvHelper.writeToCsv(response.getWriter(), transactions);
+    }
+
+    @GetMapping("/balance")
+    public ResponseEntity<BigDecimal> getBalance(
+            @RequestParam String accountNumber,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
+
+        BigDecimal balance = bankStatementService.calculateBalance(accountNumber, dateFrom, dateTo);
+        return ResponseEntity.ok(balance);
     }
 }

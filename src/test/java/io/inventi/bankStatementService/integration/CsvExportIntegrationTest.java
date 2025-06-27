@@ -3,13 +3,10 @@ package io.inventi.bankStatementService.integration;
 import io.inventi.bankStatementService.model.BankStatement;
 import io.inventi.bankStatementService.repository.BankStatementRepository;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -23,9 +20,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@ActiveProfiles("test")
 public class CsvExportIntegrationTest {
+    private static final String CSV_EXPORT_ENDPOINT = "/api/statements/export";
 
     @Autowired
     private MockMvc mockMvc;
@@ -45,7 +41,7 @@ public class CsvExportIntegrationTest {
 
     @Test
     void exportCsv_singleAccount_returnsValidCsv() throws Exception {
-        mockMvc.perform(get("/api/statements/export")
+        mockMvc.perform(get(CSV_EXPORT_ENDPOINT)
                         .param("accountNumbers", "123"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("text/csv"))
@@ -56,7 +52,7 @@ public class CsvExportIntegrationTest {
 
     @Test
     void exportCsv_multipleAccounts_returnsBothRows() throws Exception {
-        mockMvc.perform(get("/api/statements/export")
+        mockMvc.perform(get(CSV_EXPORT_ENDPOINT)
                         .param("accountNumbers", "123")
                         .param("accountNumbers", "456"))
                 .andExpect(status().isOk())
@@ -66,7 +62,7 @@ public class CsvExportIntegrationTest {
 
     @Test
     void exportCsv_noMatch_returnsOnlyHeaders() throws Exception {
-        mockMvc.perform(get("/api/statements/export")
+        mockMvc.perform(get(CSV_EXPORT_ENDPOINT)
                         .param("accountNumbers", "999")) // no such account
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Account number"))) // CSV headers only
