@@ -1,0 +1,6 @@
+Account number,Operation date/time,Beneficiary,Comment,Amount,Currency
+1234567890,2025-06-01 10:15:00,Alice,Payment for invoice,-500.00,USD
+1234567890,2025-06-02 09:00:00,Bob,Salary,3000.00,USD
+1234567890,2025-06-02 09:30:00,Valerie,Flowers,40.50,USD
+9876543210,2025-06-03 14:30:00,Charlie,Rent,-700.00,EUR
+9876543210,2025-06-05 16:00:00,UtilityCo,Electricity bill,-100.75,EUR
