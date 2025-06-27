@@ -40,32 +40,7 @@ public class CsvHelper {
             CSVFormat format = configureCsvFormat();
             CSVParser parser = format.parse(reader);
 
-            for (CSVRecord record : parser) {
-                if (record == null) {
-                    continue;
-                }
-                long rowNum = record.getRecordNumber();
-
-                try {
-                    BankStatementDto dto = createBankStatementDto(record);
-
-                    Set<ConstraintViolation<BankStatementDto>> violations = validator.validate(dto);
-
-                    if (!violations.isEmpty()) {
-                        String message = violations.stream()
-                                .map(v -> v.getPropertyPath() + " " + v.getMessage())
-                                .collect(Collectors.joining("; "));
-                        errors.add(new ResponseDto.RowError(rowNum, message));
-                        continue;
-                    }
-
-                    BankStatement statement = createBankStatement(record);
-                    validStatements.add(statement);
-                } catch (Exception e) {
-                    errors.add(new ResponseDto.RowError(rowNum, e.getMessage()));
-                }
-
-            }
+            parseCsvRecord(parser, validator, validStatements, errors);
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse CSV: " + e.getMessage());
         }
@@ -121,5 +96,34 @@ public class CsvHelper {
                 .amount(new BigDecimal(record.get(AMOUNT)))
                 .currency(record.get(CURRENCY))
                 .build();
+    }
+
+    private static void parseCsvRecord(CSVParser parser, Validator validator, List<BankStatement> validStatements, List<ResponseDto.RowError> errors) {
+        for (CSVRecord record : parser) {
+            if (record == null) {
+                continue;
+            }
+            long rowNum = record.getRecordNumber();
+
+            try {
+                BankStatementDto dto = createBankStatementDto(record);
+
+                Set<ConstraintViolation<BankStatementDto>> violations = validator.validate(dto);
+
+                if (!violations.isEmpty()) {
+                    String message = violations.stream()
+                            .map(v -> v.getPropertyPath() + " " + v.getMessage())
+                            .collect(Collectors.joining("; "));
+                    errors.add(new ResponseDto.RowError(rowNum, message));
+                    continue;
+                }
+
+                BankStatement statement = createBankStatement(record);
+                validStatements.add(statement);
+            } catch (Exception e) {
+                errors.add(new ResponseDto.RowError(rowNum, e.getMessage()));
+            }
+
+        }
     }
 }

@@ -20,8 +20,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class CsvImportIntegrationTest {
+    private static final String CSV_IMPORT_ENDPOINT = "/api/statements/import";
 
     @Autowired
     private MockMvc mockMvc;
@@ -35,7 +35,6 @@ public class CsvImportIntegrationTest {
     }
 
     @Test
-    @Order(1)
     void testCsvImport_withMixedValidAndInvalidRows() throws Exception {
         String csv = """
         Account number,Operation date/time,Beneficiary,Comment,Amount,Currency
@@ -48,7 +47,7 @@ public class CsvImportIntegrationTest {
                 "file", "test.csv", "text/csv", csv.getBytes(StandardCharsets.UTF_8)
         );
 
-        mockMvc.perform(multipart("/api/statements/import").file(file))
+        mockMvc.perform(multipart(CSV_IMPORT_ENDPOINT).file(file))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.imported").value(1))
                 .andExpect(jsonPath("$.skipped").value(2))

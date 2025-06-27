@@ -11,6 +11,7 @@ import jakarta.validation.Validator;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -43,8 +44,8 @@ public class BankStatementService {
     }
 
     public List<BankStatementDto> findBankStatements(List<String> accountNumbers, LocalDate dateFrom, LocalDate dateTo) {
-        LocalDateTime from = dateFrom != null ? dateFrom.atStartOfDay() : LocalDate.of(1970, 1, 1).atStartOfDay();
-        LocalDateTime to = dateTo != null ? dateTo.atTime(LocalTime.MAX) : LocalDateTime.now().plusYears(100);
+        LocalDateTime from = getDateFrom(dateFrom);
+        LocalDateTime to = getDateTo(dateTo);
         List<BankStatement> bankStatements;
 
         if (dateFrom != null || dateTo != null) {
@@ -56,6 +57,18 @@ public class BankStatementService {
         return mapToBankStatementDto(bankStatements);
     }
 
+    public BigDecimal calculateBalance(String accountNumber, LocalDate dateFrom, LocalDate dateTo) {
+        LocalDateTime from = getDateFrom(dateFrom);
+        LocalDateTime to = getDateTo(dateTo);
+
+        List<BankStatement> statements = bankStatementRepository
+                .findByAccountNumberAndOperationDateBetween(accountNumber, from, to);
+
+        return statements.stream()
+                .map(BankStatement::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
     private List<BankStatementDto> mapToBankStatementDto(List<BankStatement> bankStatements) {
         if (bankStatements == null || bankStatements.isEmpty()) {
             return new ArrayList<>();
@@ -64,5 +77,13 @@ public class BankStatementService {
                 .stream()
                 .map(bankStatementMapper::entityToDto)
                 .toList();
+    }
+
+    private LocalDateTime getDateFrom(LocalDate dateFrom) {
+        return dateFrom != null ? dateFrom.atStartOfDay() : LocalDate.of(1970, 1, 1).atStartOfDay();
+    }
+
+    private LocalDateTime getDateTo(LocalDate dateTo) {
+        return dateTo != null ? dateTo.atTime(LocalTime.MAX) : LocalDateTime.now().plusYears(100);
     }
 }
