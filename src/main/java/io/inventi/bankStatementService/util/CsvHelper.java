@@ -7,11 +7,14 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Writer;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -68,6 +71,25 @@ public class CsvHelper {
         }
 
         return new CsvHelperResult(validStatements, errors);
+    }
+
+    public static void writeToCsv(Writer writer, List<BankStatementDto> bankStatements) throws IOException {
+        CSVFormat format = CSVFormat.DEFAULT.builder()
+                .setHeader(ACCOUNT_NUMBER, OPERATION_DATE, BENEFICIARY, COMMENT, AMOUNT, CURRENCY)
+                .get();
+        CSVPrinter printer = new CSVPrinter(writer, format);
+
+        for (BankStatementDto dto : bankStatements) {
+            printer.printRecord(
+                    dto.getAccountNumber(),
+                    dto.getOperationDateTime(),
+                    dto.getBeneficiary(),
+                    dto.getComment() != null ? dto.getComment() : "",
+                    dto.getAmount(),
+                    dto.getCurrency()
+            );
+        }
+        printer.flush();
     }
 
     private static CSVFormat configureCsvFormat() {
